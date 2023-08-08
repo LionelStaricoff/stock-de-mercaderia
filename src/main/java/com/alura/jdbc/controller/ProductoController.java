@@ -2,10 +2,8 @@ package com.alura.jdbc.controller;
 
 
 import java.sql.Connection;
-import java.sql.DriverManager;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
-import java.sql.SQLDataException;
 import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.ArrayList;
@@ -13,10 +11,8 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import javax.swing.JOptionPane;
-
 import com.alura.jdbc.factory.ConnectionFactory;
-import com.mysql.cj.protocol.Resultset;
+import com.alura.jdbc.modelo.Producto;
 
 public class ProductoController {
 
@@ -85,13 +81,9 @@ public class ProductoController {
 		}
 	}
 
-	public void guardar(Map<String, String> producto) throws SQLException {
-		String nombre = producto.get("NOMBRE");
-		String descripcion = producto.get("DESCRIPCION");
-		Integer cantidad = Integer.valueOf(producto.get("CANTIDAD"));
-	    Integer maximoCantidad = 50;
-		
-	    final Connection con = new ConnectionFactory().recuperarConexion();
+	public void guardar(Producto producto) throws SQLException {
+		ConnectionFactory factory = new ConnectionFactory();
+	    final Connection con =  factory.recuperarConexion();
 	    
 	    try(con){
 		con.setAutoCommit(false);// desactivamos la responsbilidad del jdbc para hacer transacciones
@@ -104,39 +96,34 @@ public class ProductoController {
  
 		//try con recursos que cierra la conexcieon automaticamente del statement
 		try(statement){
+		ejecutarRegistro(producto, statement);
 		
-		//se crea este loop para poner un limite al guardar cantidades de productos
-		//en el caso de que sean mayores de 50 unidades se guardaran en varias partes, 
-		//ejemplo  si guardo 60, primero inserta 50 y luego 10
-		do {
-			int cantidadParaGuardar = Math.min(cantidad, maximoCantidad);
-			ejecutarRegistro(nombre, descripcion, cantidadParaGuardar, statement);
-			cantidad -= maximoCantidad;
-
-		} while (cantidad > 0);
-
 		con.commit();// verifica que todas las transacciones se realicen correctamente
+		}
 	} catch (Exception e) {
+		e.printStackTrace();
+		System.out.println("rollback e la transaccion");
 		con.rollback();// ante cualquer error entre transacciones se regresa al estado inicial
 
 	}
   }
-}
 
-	private void ejecutarRegistro(String nombre, String descripcion, Integer cantidad, PreparedStatement statement)
+
+	private void ejecutarRegistro(Producto producto, PreparedStatement statement)
 			throws SQLException {
-		statement.setString(1, nombre);
-		statement.setString(2, descripcion);
-		statement.setInt(3, cantidad);
+		statement.setString(1, producto.getNombre());
+		statement.setString(2, producto.getDescripcion());
+		statement.setInt(3, producto.getCantidad());
 		
 		statement.execute();
-		final ResultSet resulset= statement.getGeneratedKeys();
+		final ResultSet resulset = statement.getGeneratedKeys();
+		
 		//ejecutando el try con recursos de cierre automatico
 		try(resulset ){
-
 		while (resulset.next()) {
-			System.out.println(String.format("Fue insertado el producto de ID %d",
-					resulset.getInt(1)));
+			producto.setId(resulset.getInt(1) );
+			System.out.println(String.format("Fue insertado el producto de ID %s",producto) );
+				
 		}
 		}
 	}
