@@ -22,8 +22,14 @@ public class ConnectionFactory {
 	
 	}
 
-	public Connection recuperarConexion() throws SQLException {
-		return this.dataSource.getConnection();
+	public Connection recuperarConexion()  {
+		try {
+			return this.dataSource.getConnection();
+		} catch (SQLException e) {
+			new RuntimeException(e);
+		}
+		return null;
+	
               
 	}
 }
