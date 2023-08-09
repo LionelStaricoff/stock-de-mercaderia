@@ -26,9 +26,9 @@ public class ConnectionFactory {
 		try {
 			return this.dataSource.getConnection();
 		} catch (SQLException e) {
-			new RuntimeException(e);
+			throw new RuntimeException(e);
 		}
-		return null;
+		
 	
               
 	}

@@ -22,8 +22,9 @@ public class ProductoDAO {
 	
 	public void guardar(Producto producto)  {
 	    
-	    try(this.con){
-		final PreparedStatement statement = con.prepareStatement(
+	    try{
+	    	PreparedStatement statement;
+		    statement = con.prepareStatement(
 				"INSERT INTO PRODUCTO "
 		       + "(nombre, descripcion, cantidad) " 
 		       + " VALUES(?, ?, ?)",
@@ -31,8 +32,22 @@ public class ProductoDAO {
  
 		//try con recursos que cierra la conexcieon automaticamente del statement
 		try(statement){
-		ejecutarRegistro(producto, statement);
+			statement.setString(1, producto.getNombre());
+			statement.setString(2, producto.getDescripcion());
+			statement.setInt(3, producto.getCantidad());
+			
+			statement.execute();
+			
+			final ResultSet resulset = statement.getGeneratedKeys();
+			
+			try(resulset){
+				while(resulset.next()) {
+					producto.setId(resulset.getInt(1));
+					System.out.println(String.format("Fue insertado el producto de ID %s",producto) );
+				}
+				}
 			}
+		
 	} catch (SQLException e) {
 		new RuntimeException(e);
 	}
@@ -40,30 +55,10 @@ public class ProductoDAO {
 	}
 	
 	
-	private void ejecutarRegistro(Producto producto, PreparedStatement statement)
-			throws SQLException {
-		statement.setString(1, producto.getNombre());
-		statement.setString(2, producto.getDescripcion());
-		statement.setInt(3, producto.getCantidad());
-		
-		statement.execute();
-		final ResultSet resulset = statement.getGeneratedKeys();
-		
-		//ejecutando el try con recursos de cierre automatico
-		try(resulset ){
-		while (resulset.next()) {
-			producto.setId(resulset.getInt(1) );
-			System.out.println(String.format("Fue insertado el producto de ID %s",producto) );
-				
-		}
-		}
-	}
-
 	public List<Producto> listar() {
 		List<Producto> resultado = new ArrayList<>();
-		final Connection con = new ConnectionFactory().recuperarConexion();
 
-		try(con){
+		try{
 		PreparedStatement statement = con.prepareStatement("SELECT id, nombre, descripcion, cantidad FROM producto");
 
 		try(statement){
@@ -88,5 +83,55 @@ public class ProductoDAO {
 		throw new RuntimeException(e);
 	}
 		}
+
+	
+	
+	public int eliminar(Integer id) {
+		
+		PreparedStatement statement;
+		try{
+			statement = con.prepareStatement("DELETE FROM PRODUCTO WHERE ID = ?");
+		
+		try(statement) {
+			statement.setInt(1, id);
+			 statement.execute();
+			 //metodo para saber cuantas filas fueron eliminadas
+				return statement.getUpdateCount();
+		}  
+		} catch (SQLException e) {
+		throw new RuntimeException(e);
+		}
+	}
+
+	public int modificar(String nombre, String descripcion, Integer cantidad, Integer id) {
+		try{
+			final PreparedStatement statement =  con.prepareStatement("UPDATE PRODUCTO SET " 
+					 + " NOMBRE = ?"
+					 + ", DESCRIPCION = ?"
+					 + ", CANTIDAD = ?" 
+					 +" WHERE ID = ?");
+			try(statement){
+			statement.setString(1, nombre);
+			 statement.setString(2, descripcion);
+			 statement.setInt(3, cantidad);
+			 statement.setInt(4, id);
+			 
+			 statement.execute();
+			
+		int UPdateCount	= statement.getUpdateCount();
+			 //metodo para saber cuantas filas fueron modificados
+				return UPdateCount;
+		}  
+		}catch(SQLException e) {
+			throw new RuntimeException(e);
+		}
+	}
 }
+		
+		 
+		
+		
+		
+
+
 
