@@ -9,6 +9,8 @@ public class Producto {
 	private String descripcion;
 	
 	private Integer cantidad;
+	
+	private Integer categoriaId;
 
 	public Producto( String nombre, String descripcion, Integer cantidad) {
 		
@@ -27,6 +29,13 @@ public class Producto {
 
 
 	
+	public Producto(int id, String nombre, int cantidad) {
+		this.id = id;
+		this.nombre = nombre;
+		this.cantidad = cantidad;
+	}
+
+
 	public Integer getId() {
 		return id;
 	}
@@ -51,6 +60,22 @@ public class Producto {
 		this.id = id;
 	}
 	
+	
+	
+	public void setCategoriaId(Integer categoriaId) {
+		
+		this.categoriaId = categoriaId;
+	}
+	
+	
+
+	public int getCategoriaId() {
+		
+		return this.categoriaId;
+	}
+	
+	
+	
 	@Override
 	public String toString(){
 		return String.format(
@@ -62,5 +87,10 @@ public class Producto {
 				);
 		
 	}
+
+
+
+
+	
 
 }

@@ -26,8 +26,8 @@ public class ProductoDAO {
 	    	PreparedStatement statement;
 		    statement = con.prepareStatement(
 				"INSERT INTO PRODUCTO "
-		       + "(nombre, descripcion, cantidad) " 
-		       + " VALUES(?, ?, ?)",
+		       + "(nombre, descripcion, cantidad, categoria_id) " 
+		       + " VALUES(?, ?, ?, ?)",
 				Statement.RETURN_GENERATED_KEYS);// el return se utiliza para que devuelva el id generado
  
 		//try con recursos que cierra la conexcieon automaticamente del statement
@@ -35,6 +35,7 @@ public class ProductoDAO {
 			statement.setString(1, producto.getNombre());
 			statement.setString(2, producto.getDescripcion());
 			statement.setInt(3, producto.getCantidad());
+			statement.setInt(4, producto.getCategoriaId());
 			
 			statement.execute();
 			
@@ -126,6 +127,38 @@ public class ProductoDAO {
 			throw new RuntimeException(e);
 		}
 	}
+
+	public List<Producto> listar(Integer categoriaId) {
+		List<Producto> resultado = new ArrayList<>();
+
+		try{
+		PreparedStatement statement = con.prepareStatement("SELECT ID, NOMBRE, DESCRIPCION, CANTIDAD"
+				+ " FROM PRODUCTO "
+				+ " WHERE CATEGORIA_ID = ?");
+
+		try(statement){
+			    statement.setInt(1, categoriaId);
+				statement.execute();
+		final ResultSet resulSet = statement.getResultSet();
+
+		try(resulSet){
+		while (resulSet.next()) {
+			Producto fila = new Producto(resulSet.getInt("ID"),
+					resulSet.getString("NOMBRE"),
+					resulSet.getString("DESCRIPCION"),
+					resulSet.getInt("CANTIDAD")
+					);
+	
+			resultado.add(fila);
+		    }
+		}
+		}
+		 
+		return resultado;
+	} catch(SQLException e) {
+		throw new RuntimeException(e);
+	}
+}
 }
 		
 		 
